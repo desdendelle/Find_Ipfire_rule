@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+import socket, utils, os
+from utils import log
+
+def test():
+    cmd = "/etc/init.d/unbound restart"
+    os.system(cmd)
+    log('Restarted Unbound DNS service.')
+    try:
+        socket.gethostbyname("bit.ly")
+        return True
+    except:
+        return False
+
+r = utils.Rules()
+r.set_rule_file("/var/lib/suricata/community-community.rules")
+r.set_modifications_file("/var/ipfire/suricata/community-modifications")
+
+if test():
+    log("Error: Test function successful before any testing - aborting.")
+    exit()
+    
+rules = r.get_rules()
+
+#Back up rules file
+cmd = "cp /var/lib/suricata/community-community.rules ."
+os.system(cmd)
+log("Backed up rules file.")
+
+#Disable all rules
+for sid in rules.keys():
+    log(rules[sid])
+    if rules[sid]["active"]:
+        r.disable_rule(sid)
+        log(f"Disabled rule {rules[sid]["msg"]} (SID: {sid})")
+ 
+#Enable rules one at the time and check whether a test succeeds
+done = False
+num_rules_reviewed = 0
+for sid in rules.keys():
+    log(rules[sid])
+    num_rules_reviewed += 1
+    r.enable_rule(sid)
+    test_result = test()
+    log(f'test result is {test_result}')
+    r.disable_rule(sid)
+    if test_result:
+        log(f'The offending rule is {rules[sid]["msg"]} (SID: {sid})')
+        done = True    
+        if done: break
+        
+if done:
+    log(f"Found a relevant rule. Tested {num_rules_reviewed} rules)")
+else:
+    log(f"Did not find a relevant rule. Tested {num_rules_reviewed} rules)")
+    
+#Overwrite rules file with backed-up one
+cmd = "mv -f community-community.rules /var/lib/suricata/"
+os.system(cmd)
+log("Overwritten modified rules file.")
