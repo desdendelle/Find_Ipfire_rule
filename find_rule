@@ -38,11 +38,11 @@ for sid in rules.keys():
 done = False
 num_rules_reviewed = 0
 for sid in rules.keys():
-    log(rules[sid])
+    log(f"Now working on SID: {rules[sid]}")
     num_rules_reviewed += 1
     r.enable_rule(sid)
     test_result = test()
-    log(f'test result is {test_result}')
+    log(f'    test result is {test_result}')
     r.disable_rule(sid)
     if test_result:
         log(f'The offending rule is {rules[sid]["msg"]} (SID: {sid})')
