@@ -29,16 +29,16 @@ log("Backed up rules file.")
 
 #Disable all rules
 for sid in rules.keys():
-    log(rules[sid])
+    log(f"Now working on SID: {rules[sid]}")
     if rules[sid]["active"]:
         r.disable_rule(sid)
-        log(f"Disabled rule {rules[sid]["msg"]} (SID: {sid})")
+        log(f'Disabled rule {rules[sid]["msg"]} (SID: {sid})')
  
 #Enable rules one at the time and check whether a test succeeds
 done = False
 num_rules_reviewed = 0
 for sid in rules.keys():
-    log(f"Now working on SID: {rules[sid]}")
+    log(f'Now working on rule {rules[sid]["msg"]} (SID: {sid})')
     num_rules_reviewed += 1
     r.enable_rule(sid)
     test_result = test()
